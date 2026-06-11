@@ -22,8 +22,11 @@ app.use(express.urlencoded({ extended: false }));
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
+app.use('/users', require('./routes/userRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
+app.use('/tasks', require('./routes/taskRoutes'));
 
 // Root path diagnostic route
 app.get('/', (req, res) => {

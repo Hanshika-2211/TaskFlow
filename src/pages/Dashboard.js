@@ -26,12 +26,14 @@ const Dashboard = () => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
 
   // Add Member form states
   const [memberName, setMemberName] = useState('');
   const [memberEmail, setMemberEmail] = useState('');
   const [memberDept, setMemberDept] = useState('');
   const [memberDesig, setMemberDesig] = useState('');
+  const [memberIsLead, setMemberIsLead] = useState(false);
   const [memberSubmitting, setMemberSubmitting] = useState(false);
   const [memberError, setMemberError] = useState('');
   
@@ -183,7 +185,8 @@ const Dashboard = () => {
         name: memberName,
         email: memberEmail,
         department: memberDept,
-        designation: memberDesig
+        designation: memberDesig,
+        isTeamLead: memberIsLead
       });
       setUsers([...users, newMember]);
       
@@ -191,6 +194,7 @@ const Dashboard = () => {
       setMemberEmail('');
       setMemberDept('');
       setMemberDesig('');
+      setMemberIsLead(false);
       setIsMemberModalOpen(false);
       alert('Team member added successfully!');
     } catch (err) {
@@ -891,6 +895,11 @@ const Dashboard = () => {
               title="Add Team Member" 
               onClick={() => setIsMemberModalOpen(true)} 
             />
+            <Users 
+              className="toolbar-icon" 
+              title="View Team" 
+              onClick={() => setIsTeamModalOpen(true)} 
+            />
             <Folder className="toolbar-icon" title="Projects Workspace" />
             {/* Settings Icon opens Theme Selector Modal */}
             <Settings 
@@ -974,11 +983,27 @@ const Dashboard = () => {
 
       {/* Add Team Member Modal Dialog */}
       {isMemberModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsMemberModalOpen(false)}>
+        <div className="modal-overlay" onClick={() => {
+          setIsMemberModalOpen(false);
+          setMemberName('');
+          setMemberEmail('');
+          setMemberDept('');
+          setMemberDesig('');
+          setMemberIsLead(false);
+          setMemberError('');
+        }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px' }}>
             <div className="modal-header">
               <h2 className="modal-title">Add Team Participant</h2>
-              <button type="button" className="btn-close" onClick={() => setIsMemberModalOpen(false)}>
+              <button type="button" className="btn-close" onClick={() => {
+                setIsMemberModalOpen(false);
+                setMemberName('');
+                setMemberEmail('');
+                setMemberDept('');
+                setMemberDesig('');
+                setMemberIsLead(false);
+                setMemberError('');
+              }}>
                 Close
               </button>
             </div>
@@ -1040,12 +1065,31 @@ const Dashboard = () => {
                     disabled={memberSubmitting}
                   />
                 </div>
+                <div className="form-group" style={{ marginTop: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <input
+                    type="checkbox"
+                    id="memberIsLead"
+                    checked={memberIsLead}
+                    onChange={(e) => setMemberIsLead(e.target.checked)}
+                    disabled={memberSubmitting}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer', margin: 0 }}
+                  />
+                  <label className="form-label" htmlFor="memberIsLead" style={{ marginBottom: 0, cursor: 'pointer', fontSize: '0.85rem' }}>Mark as Team Lead</label>
+                </div>
               </div>
               <div className="modal-footer">
                 <button 
                   type="button" 
                   className="btn-secondary" 
-                  onClick={() => setIsMemberModalOpen(false)}
+                  onClick={() => {
+                    setIsMemberModalOpen(false);
+                    setMemberName('');
+                    setMemberEmail('');
+                    setMemberDept('');
+                    setMemberDesig('');
+                    setMemberIsLead(false);
+                    setMemberError('');
+                  }}
                   disabled={memberSubmitting}
                 >
                   Cancel
@@ -1121,6 +1165,117 @@ const Dashboard = () => {
                 onClick={() => setIsProfileModalOpen(false)}
               >
                 Close Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Team Modal Dialog */}
+      {isTeamModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsTeamModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px', borderRadius: '24px' }}>
+            <div className="modal-header" style={{ borderBottom: 'none', paddingBottom: '0.5rem' }}>
+              <h2 className="modal-title">Team Workspace Members</h2>
+              <button type="button" className="btn-close" onClick={() => setIsTeamModalOpen(false)}>
+                Close
+              </button>
+            </div>
+            <div className="modal-body" style={{ maxHeight: '450px', overflowY: 'auto', padding: '0.5rem 1.5rem 1.5rem 1.5rem' }}>
+              <p style={{ color: 'var(--text-dark-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+                All participants registered in the workspace team. Team leads are pinned and highlighted at the top.
+              </p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {[...users]
+                  .sort((a, b) => {
+                    if (a.isTeamLead && !b.isTeamLead) return -1;
+                    if (!a.isTeamLead && b.isTeamLead) return 1;
+                    return a.name.localeCompare(b.name);
+                  })
+                  .map((member) => (
+                    <div 
+                      key={member._id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '1rem',
+                        borderRadius: '16px',
+                        background: member.isTeamLead 
+                          ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.05) 100%)' 
+                          : 'rgba(255, 255, 255, 0.02)',
+                        border: member.isTeamLead 
+                          ? '1px solid rgba(99, 102, 241, 0.3)' 
+                          : '1px solid rgba(255, 255, 255, 0.04)',
+                        boxShadow: member.isTeamLead 
+                          ? '0 4px 15px rgba(99, 102, 241, 0.1)' 
+                          : 'none',
+                        transition: 'transform var(--transition-fast)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        {/* Avatar */}
+                        <div 
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '12px',
+                            background: member.isTeamLead ? 'var(--primary)' : 'rgba(255, 255, 255, 0.06)',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 800,
+                            fontSize: '0.9rem',
+                            boxShadow: member.isTeamLead ? '0 4px 10px var(--primary-glow)' : 'none'
+                          }}
+                        >
+                          {getInitials(member.name)}
+                        </div>
+                        
+                        {/* Details */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'white' }}>{member.name}</span>
+                            {member.isTeamLead && (
+                              <span 
+                                style={{
+                                  fontSize: '0.65rem',
+                                  fontWeight: 850,
+                                  background: 'var(--primary)',
+                                  color: 'white',
+                                  padding: '0.15rem 0.45rem',
+                                  borderRadius: '6px',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.05em'
+                                }}
+                              >
+                                Lead
+                              </span>
+                            )}
+                          </div>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-dark-secondary)' }}>{member.email}</span>
+                          {(member.department || member.designation) && (
+                            <span style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '2px' }}>
+                              {member.designation} {member.department && `• ${member.department}`}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+            <div className="modal-footer" style={{ borderTop: 'none', paddingTop: '0' }}>
+              <button 
+                type="button" 
+                className="btn-create" 
+                style={{ width: '100%' }}
+                onClick={() => setIsTeamModalOpen(false)}
+              >
+                Close List
               </button>
             </div>
           </div>

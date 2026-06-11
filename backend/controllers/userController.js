@@ -5,7 +5,7 @@ const User = require('../models/User');
 // @access  Private
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find({}).select('name email department designation');
+    const users = await User.find({}).select('name email department designation isTeamLead');
     res.json(users);
   } catch (error) {
     console.error('Fetch users error:', error);
@@ -18,7 +18,7 @@ const getUsers = async (req, res) => {
 // @access  Private
 const createUser = async (req, res) => {
   try {
-    const { name, email, department, designation } = req.body;
+    const { name, email, department, designation, isTeamLead } = req.body;
 
     if (!name || !email) {
       return res.status(400).json({ message: 'Please provide name and email for the participant' });
@@ -39,6 +39,7 @@ const createUser = async (req, res) => {
       password,
       department: department || '',
       designation: designation || '',
+      isTeamLead: !!isTeamLead,
     });
 
     res.status(201).json({
@@ -47,6 +48,7 @@ const createUser = async (req, res) => {
       email: user.email,
       department: user.department,
       designation: user.designation,
+      isTeamLead: user.isTeamLead,
     });
   } catch (error) {
     console.error('Create participant error:', error);

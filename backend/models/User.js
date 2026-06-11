@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema({
     trim: true,
     default: '',
   },
+  isTeamLead: {
+    type: Boolean,
+    default: false,
+  },
 }, {
   timestamps: true,
 });

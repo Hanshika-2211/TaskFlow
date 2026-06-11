@@ -37,11 +37,20 @@ app.get('/', (req, res) => {
     2: 'connecting',
     3: 'disconnecting',
   };
+  
+  const routes = app._router.stack
+    .map(r => {
+      if (r.route) return `${r.route.stack[0].method.toUpperCase()} ${r.route.path}`;
+      if (r.name === 'router') return `Router: ${r.regexp.toString()}`;
+      return r.name;
+    });
+
   res.json({
     message: 'TaskFlow API is running...',
     database: dbStatus[dbState] || 'unknown',
     hasMongoUri: !!process.env.MONGO_URI,
     hasJwtSecret: !!process.env.JWT_SECRET,
+    routes
   });
 });
 

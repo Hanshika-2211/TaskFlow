@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
 // Load environment variables
@@ -26,7 +27,19 @@ app.use('/api/tasks', require('./routes/taskRoutes'));
 
 // Root path diagnostic route
 app.get('/', (req, res) => {
-  res.json({ message: 'TaskFlow API is running...' });
+  const dbState = mongoose.connection.readyState;
+  const dbStatus = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting',
+  };
+  res.json({
+    message: 'TaskFlow API is running...',
+    database: dbStatus[dbState] || 'unknown',
+    hasMongoUri: !!process.env.MONGO_URI,
+    hasJwtSecret: !!process.env.JWT_SECRET,
+  });
 });
 
 // Fallback Route handler (404)
